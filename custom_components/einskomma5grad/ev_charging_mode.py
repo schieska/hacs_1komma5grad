@@ -3,9 +3,11 @@ import logging
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class EVChargingModeSelect(CoordinatorEntity, SelectEntity):
     """Representation of an EV Charging Mode Select entity."""
 
-    def __init__(self, coordinator: Coordinator, system_id: str, ev_id=str) -> None:
+    def __init__(self, coordinator: Coordinator, system_id: str, ev_id: str) -> None:
         """Initialize the select entity."""
 
         super().__init__(coordinator)
@@ -31,6 +33,16 @@ class EVChargingModeSelect(CoordinatorEntity, SelectEntity):
                 self._ev_name = ev_data.ev_name
         else:
             self._attr_current_option = None
+
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = slugify(
+            f"EV charging mode {self._ev_name}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def icon(self):
@@ -53,7 +65,7 @@ class EVChargingModeSelect(CoordinatorEntity, SelectEntity):
     @property
     def name(self) -> str:
         """Return the name of the select entity."""
-        return f"EV Charging Mode {self._ev_name}"
+        return f"EV charging mode {self._ev_name}"
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
@@ -86,6 +98,9 @@ class EVChargingModeSelect(CoordinatorEntity, SelectEntity):
             self._attr_current_option = ev_data.charging_mode
             if ev_data.ev_name:
                 self._ev_name = ev_data.ev_name
+                self._attr_suggested_object_id = slugify(
+                    f"EV charging mode {self._ev_name}"
+                )
 
         self._attr_options = self.coordinator.data.ev_charging_modes.get(
             self._system_id, []

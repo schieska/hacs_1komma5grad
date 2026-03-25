@@ -9,6 +9,17 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
+
+_POWER_KEY_TO_LEGACY_OBJECT_ID = {
+    "gridConsumption": "grid_feed_out_power",
+    "gridFeedIn": "grid_feed_in_power",
+    "grid": "grid_feed_power",
+    "consumption": "consumption_power",
+    "production": "solar_production_power",
+    "evChargersAggregated": "ev_chargers_aggregated_power",
+    "heatPumpsAggregated": "heat_pumps_aggregated_power",
+}
 
 
 class GenericPowerSensor(CoordinatorEntity, SensorEntity):
@@ -25,11 +36,20 @@ class GenericPowerSensor(CoordinatorEntity, SensorEntity):
         self._name = name
         self._icon = icon
         self._live_data = {}
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"{_POWER_KEY_TO_LEGACY_OBJECT_ID[key]}_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._name} Power {self._system_id}"
+        return f"{self._name} power"
 
     @property
     def icon(self) -> str:

@@ -4,6 +4,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
 
 
 class EmsSwitch(CoordinatorEntity, SwitchEntity):
@@ -24,7 +25,7 @@ class EmsSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Heartbeat Automatic Mode {self._system_id}"
+        return "Heartbeat automatic mode"
 
     @property
     def is_on(self) -> bool | None:

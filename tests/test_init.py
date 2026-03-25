@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
 from custom_components.einskomma5grad.const import DOMAIN
-from tests.conftest import _make_response
+from tests.conftest import EV_ID, SYSTEM_ID, _make_response, entity_id_for
 
 
 async def test_setup_entry(hass: HomeAssistant, setup_integration):
@@ -45,9 +45,14 @@ async def test_setup_entry_empty_device_gateways(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    assert hass.states.get("sensor.electricity_price_a1b2c3d4_0000_0000_0000_000000000001") is not None
-    assert hass.states.get("switch.heartbeat_automatic_mode_a1b2c3d4_0000_0000_0000_000000000001") is not None
-    assert hass.states.get("select.ev_charging_mode_tesla") is not None
+    price_id = entity_id_for(hass, "sensor", f"{DOMAIN}_electricity_price_{SYSTEM_ID}")
+    switch_id = entity_id_for(hass, "switch", f"{DOMAIN}_ems_auto_mode_{SYSTEM_ID}")
+    select_id = entity_id_for(
+        hass, "select", f"{DOMAIN}_ev_charging_mode_{SYSTEM_ID}_{EV_ID}"
+    )
+    assert price_id is not None and hass.states.get(price_id) is not None
+    assert switch_id is not None and hass.states.get(switch_id) is not None
+    assert select_id is not None and hass.states.get(select_id) is not None
 
 
 async def test_setup_entry_ems_settings_error(
@@ -132,10 +137,16 @@ async def test_setup_entry_ems_settings_error(
         await hass.async_block_till_done()
 
         # Other entities should still work
-        assert hass.states.get("sensor.electricity_price_a1b2c3d4_0000_0000_0000_000000000001") is not None
-        assert hass.states.get("select.ev_charging_mode_tesla") is not None
+        price_id = entity_id_for(hass, "sensor", f"{DOMAIN}_electricity_price_{SYSTEM_ID}")
+        select_id = entity_id_for(
+            hass, "select", f"{DOMAIN}_ev_charging_mode_{SYSTEM_ID}_{EV_ID}"
+        )
+        assert price_id is not None and hass.states.get(price_id) is not None
+        assert select_id is not None and hass.states.get(select_id) is not None
 
         # EMS switch should exist but show unavailable
-        ems_state = hass.states.get("switch.heartbeat_automatic_mode_a1b2c3d4_0000_0000_0000_000000000001")
+        ems_id = entity_id_for(hass, "switch", f"{DOMAIN}_ems_auto_mode_{SYSTEM_ID}")
+        assert ems_id is not None
+        ems_state = hass.states.get(ems_id)
         assert ems_state is not None
         assert ems_state.state == "unavailable"

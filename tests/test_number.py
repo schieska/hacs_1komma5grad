@@ -2,10 +2,21 @@
 
 from homeassistant.core import HomeAssistant
 
+from custom_components.einskomma5grad.const import DOMAIN
+from tests.conftest import EV_ID, SYSTEM_ID, entity_id_for
+
+
+def _ev_soc_number_id(hass: HomeAssistant) -> str:
+    eid = entity_id_for(
+        hass, "number", f"{DOMAIN}_ev_current_soc_{SYSTEM_ID}_{EV_ID}"
+    )
+    assert eid is not None
+    return eid
+
 
 async def test_ev_soc_number_exists(hass: HomeAssistant, setup_integration):
     """Test that the EV SoC number entity is created."""
-    state = hass.states.get("number.ev_current_state_of_charge_tesla")
+    state = hass.states.get(_ev_soc_number_id(hass))
     assert state is not None
 
 
@@ -13,7 +24,7 @@ async def test_ev_soc_number_unavailable_when_not_smart_charge(
     hass: HomeAssistant, setup_integration
 ):
     """Test EV SoC is unavailable when not in SMART_CHARGE mode."""
-    state = hass.states.get("number.ev_current_state_of_charge_tesla")
+    state = hass.states.get(_ev_soc_number_id(hass))
     assert state is not None
     # Mock EV has chargingMode: "QUICK_CHARGE" so current_soc returns None
     # which makes the entity unavailable

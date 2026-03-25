@@ -9,6 +9,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import CURRENCY_ICON, DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
 
 class ElectricityPriceSensor(CoordinatorEntity, SensorEntity):
     """Representation of an Energy Price Sensor."""
@@ -21,6 +22,15 @@ class ElectricityPriceSensor(CoordinatorEntity, SensorEntity):
         self._prices = {}
         self._price_summary = {}
         self._unit = '€/kWh' # Default unit
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"electricity_price_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def icon(self):
@@ -30,7 +40,7 @@ class ElectricityPriceSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Electricity Price {self._system_id}"
+        return "Electricity price"
 
     @property
     def native_unit_of_measurement(self):

@@ -7,6 +7,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
 
 class EnergySensor(CoordinatorEntity, SensorEntity):
     """Sensor to track the energy consumed or produced by the referenced power sensor."""
@@ -20,11 +21,20 @@ class EnergySensor(CoordinatorEntity, SensorEntity):
         self._name = name
         self._last_update = None
         self._energy = 0.0  # Accumulated energy in kWh
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"{self.key_from_name()}_energy_{direction}_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def name(self):
         """Returns the name of the energy sensor."""
-        return f"{self._name} Energy {self._direction.capitalize()} {self._system_id}"
+        return f"{self._name} energy {self._direction}"
 
     @property
     def icon(self) -> str:

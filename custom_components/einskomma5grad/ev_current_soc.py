@@ -4,9 +4,11 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +39,16 @@ class EVCurrentStateOfCharge(CoordinatorEntity, NumberEntity):
                 self._ev_name = ev_data.ev_name
         else:
             self._attr_native_value = None
+
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = slugify(
+            f"EV current state of charge {self._ev_name}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def icon(self):
@@ -71,7 +83,7 @@ class EVCurrentStateOfCharge(CoordinatorEntity, NumberEntity):
     @property
     def name(self) -> str:
         """Return the name of the EV SoC entity."""
-        return f"EV Current State of Charge {self._ev_name}"
+        return f"EV current state of charge {self._ev_name}"
 
     @property
     def native_value(self) -> float | None:
@@ -99,6 +111,10 @@ class EVCurrentStateOfCharge(CoordinatorEntity, NumberEntity):
         ev_data = self.coordinator.get_ev_data(self._ev_id)
         if ev_data is not None:
             self._attr_native_value = ev_data.current_soc
-            self._ev_name = ev_data.ev_name
+            if ev_data.ev_name:
+                self._ev_name = ev_data.ev_name
+                self._attr_suggested_object_id = slugify(
+                    f"EV current state of charge {self._ev_name}"
+                )
 
         self.async_write_ha_state()

@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
 
 
 class BatteryStateOfChargeSensor(CoordinatorEntity, SensorEntity):
@@ -22,11 +23,20 @@ class BatteryStateOfChargeSensor(CoordinatorEntity, SensorEntity):
 
         self._system_id = system_id
         self._summary_cards = {}
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"battery_state_of_charge_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Battery State of Charge {self._system_id}"
+        return "Battery state of charge"
 
     @property
     def icon(self) -> str:

@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import Coordinator
+from .device import system_device_info, system_id_slug
 
 class BatteryPowerInSensor(CoordinatorEntity, SensorEntity):
     """Representation of Battery Power In Sensor."""
@@ -18,11 +19,20 @@ class BatteryPowerInSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._system_id = system_id
         self._summary_cards = {}
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"battery_in_power_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Battery In Power {self._system_id}"
+        return "Battery in power"
 
     @property
     def icon(self) -> str:
@@ -81,11 +91,20 @@ class BatteryPowerOutSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._system_id = system_id
         self._summary_cards = {}
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = (
+            f"battery_out_power_{system_id_slug(system_id)}"
+        )
+
+    @property
+    def device_info(self):
+        """Attach to the Heartbeat system device."""
+        return system_device_info(self.coordinator, self._system_id)
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Battery Out Power {self._system_id}"
+        return "Battery out power"
 
     @property
     def icon(self) -> str:

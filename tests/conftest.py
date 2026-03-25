@@ -5,10 +5,12 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
+import pytest_socket
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.helpers import entity_registry as er
 
 from custom_components.einskomma5grad.const import DOMAIN
 
@@ -26,6 +28,24 @@ EV_ID = "00000000-0000-0000-0000-000000000000"
 # HA slugifies entity names: dashes become underscores
 SYSTEM_SLUG = SYSTEM_ID.replace("-", "_")
 EV_SLUG = EV_ID.replace("-", "_")
+
+
+def entity_id_for(hass: HomeAssistant, entity_domain: str, unique_id: str) -> str | None:
+    """Resolve entity_id from integration unique_id (stable when device naming changes)."""
+    return er.async_get(hass).async_get_entity_id(entity_domain, DOMAIN, unique_id)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(fixturedef, request):
+    """Re-enable sockets before the asyncio ``event_loop`` fixture runs on Windows.
+
+    pytest-homeassistant-custom-component calls disable_socket(allow_unix_socket=True).
+    ProactorEventLoop still uses AF_INET socketpair() for its self-pipe. Fixture setup
+    runs after ``pytest_runtest_setup``, so enabling here is late enough to stick.
+    """
+    if fixturedef.argname == "event_loop":
+        pytest_socket.enable_socket()
+    yield
 
 
 def load_mock(filename: str) -> dict | list:

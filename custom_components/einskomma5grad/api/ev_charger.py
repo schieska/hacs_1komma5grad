@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 import requests
 
@@ -27,7 +28,7 @@ class EVCharger:
     def id(self) -> str:
         return self._data["id"]
 
-    def name(self) -> str | None:
+    def name(self) -> Optional[str]:
         if "profile" in self._data and "name" in self._data["profile"]:
             return self._data["profile"]["name"]
 
@@ -62,7 +63,7 @@ class EVCharger:
 
         self._data["chargeSettings"]["chargingMode"] = mode.value
 
-    def current_soc(self) -> float | None:
+    def current_soc(self) -> Optional[float]:
         if self.charging_mode() != ChargingMode.SMART_CHARGE:
             return None
 

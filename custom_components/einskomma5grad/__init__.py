@@ -1,17 +1,19 @@
 """The 1KOMMA5GRAD integration."""
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from dataclasses import dataclass
-
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from typing import TYPE_CHECKING
 
 from .const import DOMAIN
-from .coordinator import Coordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SELECT, Platform.SWITCH, Platform.NUMBER]
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+PLATFORMS = ["sensor", "select", "switch", "number"]
 
 
 @dataclass
@@ -29,6 +31,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Initialise the coordinator that manages data updates from your api.
     # This is defined in coordinator.py
+    from .coordinator import Coordinator
+
     coordinator = Coordinator(hass, config_entry)
 
     # Perform an initial data load from api.
@@ -54,7 +58,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     return True
 
 
-async def _async_update_listener(hass: HomeAssistant, config_entry):
+async def _async_update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
     """Handle config options update."""
     # Reload the integration when the options change.
     await hass.config_entries.async_reload(config_entry.entry_id)

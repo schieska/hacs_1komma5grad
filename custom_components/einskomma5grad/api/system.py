@@ -15,6 +15,14 @@ class System:
     def id(self) -> str:
         return self.data["id"]
 
+    def display_name(self) -> str:
+        """Human-readable system name for the device registry."""
+        return (
+            self.data.get("systemName")
+            or self.data.get("addressName")
+            or self.id()
+        )
+
     def get_live_overview(self):
         try:
             res = requests.get(
