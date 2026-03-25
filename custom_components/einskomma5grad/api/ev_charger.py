@@ -28,6 +28,10 @@ class EVCharger:
     def id(self) -> str:
         return self._data["id"]
 
+    def raw_data(self) -> dict:
+        """Read-only API payload for coordinator/sensor enrichment."""
+        return self._data
+
     def name(self) -> Optional[str]:
         if "profile" in self._data and "name" in self._data["profile"]:
             return self._data["profile"]["name"]

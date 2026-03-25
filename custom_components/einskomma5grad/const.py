@@ -8,5 +8,8 @@ MAX_SCAN_INTERVAL = 3600
 
 DOMAIN = "einskomma5grad"
 
+# Options: comma-separated Heartbeat system UUIDs to skip (no device/entities)
+CONF_EXCLUDED_SYSTEM_IDS = "excluded_system_ids"
+
 TIMEZONE = "Europe/Berlin"
 CURRENCY_ICON = "mdi:cash"

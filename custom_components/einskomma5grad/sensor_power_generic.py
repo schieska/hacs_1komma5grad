@@ -19,6 +19,7 @@ _POWER_KEY_TO_LEGACY_OBJECT_ID = {
     "production": "solar_production_power",
     "evChargersAggregated": "ev_chargers_aggregated_power",
     "heatPumpsAggregated": "heat_pumps_aggregated_power",
+    "acsAggregated": "acs_aggregated_power",
 }
 
 

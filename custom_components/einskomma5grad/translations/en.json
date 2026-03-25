@@ -23,7 +23,8 @@
             "init": {
                 "title": "1KOMMA5GRAD settings",
                 "data": {
-                    "scan_interval": "Scrape interval (seconds)"
+                    "scan_interval": "Scrape interval (seconds)",
+                    "excluded_system_ids": "Excluded system IDs (optional, comma-separated UUIDs). Hide a second Heartbeat site that shows empty or zero entities."
                 }
             }
         },

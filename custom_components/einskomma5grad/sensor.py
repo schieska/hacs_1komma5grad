@@ -11,6 +11,15 @@ from .sensor_electricity_price import ElectricityPriceSensor
 from .sensor_power_generic import GenericPowerSensor
 from .battery_power_sensor import BatteryPowerInSensor, BatteryPowerOutSensor
 from .battery_soc_sensor import BatteryStateOfChargeSensor
+from .sensor_ems_surplus import EMSHeatPumpMaxSurplusSensor
+from .sensor_ev_extra import EV_EXTRA_SENSOR_TYPES
+from .sensor_overview_extra import (
+    HeatPumpExternalPowerSensor,
+    LiveOverviewTimestampSensor,
+    LiveOverviewTotalSocSensor,
+    SelfSufficiencySensor,
+)
+from .sensor_summary_appliance import SummaryAppliancePowerSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -147,6 +156,24 @@ async def async_setup_entry(
             )
         )
 
+        acs_power_sensor = GenericPowerSensor(
+            coordinator=coordinator,
+            icon="mdi:air-conditioner",
+            key="acsAggregated",
+            system_id=system.id(),
+            name="Air conditioning aggregated",
+        )
+        sensors.append(acs_power_sensor)
+        sensors.append(
+            EnergySensor(
+                coordinator=coordinator,
+                system_id=system.id(),
+                power_sensor=acs_power_sensor,
+                name="Air conditioning",
+                direction="consumption",
+            )
+        )
+
         # Battery SOC sensor
         battery_soc_sensor = BatteryStateOfChargeSensor(
             coordinator=coordinator,
@@ -180,4 +207,39 @@ async def async_setup_entry(
             )
         )
 
+        sid = system.id()
+        sensors.extend(
+            [
+                SelfSufficiencySensor(coordinator, sid),
+                LiveOverviewTotalSocSensor(coordinator, sid),
+                LiveOverviewTimestampSensor(coordinator, sid),
+                HeatPumpExternalPowerSensor(coordinator, sid),
+            ]
+        )
+        for ev_id, ev in (coordinator.data.ev_data or {}).items():
+            if ev.system_id != sid:
+                continue
+            for sensor_cls in EV_EXTRA_SENSOR_TYPES:
+                sensors.append(sensor_cls(coordinator, sid, ev_id))
+
+    for sid, section, aid in coordinator.consume_new_summary_appliance_specs():
+        sensors.append(SummaryAppliancePowerSensor(coordinator, sid, section, aid))
+    for sid, hp_id in coordinator.consume_new_ems_hp_surplus_specs():
+        sensors.append(EMSHeatPumpMaxSurplusSensor(coordinator, sid, hp_id))
+
     async_add_entities(sensors)
+
+    def _on_coordinator_update() -> None:
+        new_summary = coordinator.consume_new_summary_appliance_specs()
+        new_hp = coordinator.consume_new_ems_hp_surplus_specs()
+        to_add: list = [
+            SummaryAppliancePowerSensor(coordinator, s, sec, a)
+            for s, sec, a in new_summary
+        ]
+        to_add.extend(
+            EMSHeatPumpMaxSurplusSensor(coordinator, s, h) for s, h in new_hp
+        )
+        if to_add:
+            hass.async_create_task(async_add_entities(to_add))
+
+    config_entry.async_on_unload(coordinator.async_add_listener(_on_coordinator_update))

@@ -15,7 +15,13 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .api.client import Client
 from .api.error import AuthenticationError
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, MAX_SCAN_INTERVAL, MIN_SCAN_INTERVAL
+from .const import (
+    CONF_EXCLUDED_SYSTEM_IDS,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MAX_SCAN_INTERVAL,
+    MIN_SCAN_INTERVAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -134,13 +140,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         current_interval = self._config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
+        current_excluded = self._config_entry.options.get(CONF_EXCLUDED_SYSTEM_IDS, "")
 
         data_schema = vol.Schema(
             {
                 vol.Optional(CONF_SCAN_INTERVAL, default=current_interval): vol.All(
                     vol.Coerce(int),
                     vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
-                )
+                ),
+                vol.Optional(
+                    CONF_EXCLUDED_SYSTEM_IDS, default=current_excluded
+                ): str,
             }
         )
 

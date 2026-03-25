@@ -1,8 +1,14 @@
+import logging
+
 import requests
 
 from .client import Client, REQUEST_TIMEOUT
 from .error import RequestError
 from .system import System
+
+_LOGGER = logging.getLogger(__name__)
+
+_NULL_SYSTEM_ID = "00000000-0000-0000-0000-000000000000"
 
 
 class Systems:
@@ -46,11 +52,19 @@ class Systems:
 
         systems = res.json()["data"]
 
-        # remove systems with id == "00000000-0000-0000-0000-000000000000"
-        systems = [
-            system
-            for system in systems
-            if system["id"] != "00000000-0000-0000-0000-000000000000"
-        ]
+        active_systems = []
+        for system in systems:
+            sid = system["id"]
+            if sid == _NULL_SYSTEM_ID:
+                continue
+            status = system.get("status", "ACTIVE")
+            if str(status).upper() != "ACTIVE":
+                _LOGGER.debug(
+                    "Skipping Heartbeat system %s (status=%s, only ACTIVE is loaded)",
+                    sid,
+                    status,
+                )
+                continue
+            active_systems.append(system)
 
-        return [System(self.client, system) for system in systems]
+        return [System(self.client, row) for row in active_systems]

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-PLATFORMS = ["sensor", "select", "switch", "number"]
+PLATFORMS = ["sensor", "select", "switch", "number", "binary_sensor"]
 
 
 @dataclass
